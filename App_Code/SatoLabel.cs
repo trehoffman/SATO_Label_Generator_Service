@@ -257,7 +257,10 @@ public class SatoLabel
     }
 
     public void SetFont(String font) {
-        code_text += saCommand + font;
+    	if (font.Length > 0)
+    	{
+            code_text += saCommand + font;
+    	}
     }
 
     public void SetDarkness(String value)
