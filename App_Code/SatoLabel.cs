@@ -270,8 +270,7 @@ public class SatoLabel
 
     public void ExpandFont(int x, int y)
     {
-        //need to format x and y...
-        code_text += saCommand + "L" + x + y;
+        code_text += saCommand + "L" + x.ToString("D2") + y.ToString("D2");
     }
 
     public void ReverseImage(int left, int top, int right, int bottom)
