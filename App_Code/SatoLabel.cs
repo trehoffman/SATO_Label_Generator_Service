@@ -9,17 +9,42 @@ public class SatoLabel
 {
     //class variables
     private String code_text = "";
+    private String html = "";
     private String label_printer_path = "";
+    private int dotsPerMm = 8; //for 203 dpi print heads
+    //private int dotsPerMm = 12 //for 305 dpi print heads
+    //private int dotsPerMm = 24 //for 609 dpi print heads
+    private int[] label_size = { 4, 4 };
 
     //static variables
     private static String saCommand = "^";
     private static String saStartData = "{";
     private static String saEndData = "}";
 
-    //constructor
-	public SatoLabel(String sLabelPrinterPath) {
-        code_text = "";
-        label_printer_path = sLabelPrinterPath;
+    private static String saOutlineFontDesignSelection = "$";
+    private static String saOutlineFontPrint = "$=";
+
+    //position variables
+    private int[] current_baseReference = {0,0};
+    private int current_horizontal = 0;
+    private int current_vertical = 0;
+
+    //font variables
+    private int current_darkness = 0;
+    private String current_font = "";
+    //private Object current_vector_font = {"", 0, 0, 0};
+    private int[] current_font_expansion = {0,0};
+    private int current_rotation = 0;
+
+    //constructors
+    public SatoLabel()
+    {
+        //nothing...
+    }
+
+	public SatoLabel(String sLabelPrinterPath)
+    {
+        SetLabelPrinter(sLabelPrinterPath);
 	}
 
     //builder functions
@@ -51,7 +76,7 @@ public class SatoLabel
         AddVerticalBarcode(790, 40, barcode_data);
         AddCarriageReturn();
 
-        AddVectorText(92, 125, sPOD);
+        AddOutlineFontDesignText(92, 125, "B", 320, 200, 0, sPOD);
         AddCarriageReturn();
         ReverseImage(15, 145, 675, 150);
         AddCarriageReturn();
@@ -101,7 +126,7 @@ public class SatoLabel
         //ReverseImage(72, 1, 510, 39);
         //AddCarriageReturn();
 
-        AddVectorText(92, 125, sPOD);
+        AddOutlineFontDesignText(92, 125, "B", 320, 200, 0, sPOD);
         AddCarriageReturn();
         ReverseImage(15, 145, 675, 150);
         AddCarriageReturn();
@@ -152,7 +177,7 @@ public class SatoLabel
         //ReverseImage(72, 1, 510, 39);
         //AddCarriageReturn();
 
-        AddVectorText(92, 125, "SATO");
+        AddOutlineFontDesignText(92, 125, "B", 320, 200, 0, "SATO");
         AddCarriageReturn();
         ReverseImage(15, 145, 675, 150);
         AddCarriageReturn();
@@ -186,7 +211,8 @@ public class SatoLabel
         SetLabelQuantity(TotalCount);
         EndLabel();
 
-        result = PrintLabel();
+        //result = PrintLabel();
+        result = html;
 
         return result;
     }
@@ -195,6 +221,11 @@ public class SatoLabel
     public String ReturnLabel()
     {
         return code_text;
+    }
+
+    public String ReturnLabelHtml()
+    {
+        return html;
     }
 
     public void SetLabelPrinter(String sLabelPrinterPath) {
@@ -215,14 +246,17 @@ public class SatoLabel
     public void InitializeLabel()
     {
         code_text += "";
+        html = "";
     }
 
     public void BeginLabel() {
         code_text += saStartData + saCommand + "A";
+        html += "<div class='four-by-four'>";
     }
 
     public void EndLabel() {
         code_text += saCommand + "Z" + saEndData;
+        html += "</div>";
     }
 
     public void SetLabelQuantity(int quantity)
@@ -305,11 +339,17 @@ public class SatoLabel
     //futher manipulation functions
     public void AddText(int x, int y, String font, String text)
     {
+        float xMm = x / dotsPerMm;
+        float yMm = y / dotsPerMm;
+
         SetPosition(x, y);
         SetFont(font);
         code_text += text;
         AddCarriageReturn();
 
+        html += "<div style='position:absolute; top:" + yMm + "mm; left:" + xMm + "mm;'>"
+            + text
+            + "</div>";
     }
 
     public void AddBarcode(int x, int y, String data)
@@ -326,12 +366,23 @@ public class SatoLabel
         SetRotation(0);
     }
 
-    public void AddVectorText(int x, int y, String text)
+    public void AddOutlineFontDesignText(int x, int y, String fontType, int fontWidth, int fontHeight, int fontDesign, String text)
     {
+        float xMm = x / dotsPerMm;
+        float yMm = y / dotsPerMm;
+
+        /*Outline Font Design page 74*/
         SetPosition(x, y);
-        code_text += saCommand + "$B,320,200,0";
-        code_text += saCommand + "$=" + text;
-        code_text += saCommand + "L0101"; 
+        code_text += saCommand + saOutlineFontDesignSelection
+            + fontType + ","
+            + fontWidth  + ","
+            + fontHeight + ","
+            + fontDesign;
+        code_text += saCommand + saOutlineFontPrint + text;
+
+        html += "<div style='position:absolute; top:" + yMm + "mm; left:" + xMm + "mm;'>"
+            + text
+            + "</div>";
     }
 
     public void AddPiecesLine(int x, int y, String sPieceNum, int iNumPieces, int iWeight, String sSecureCode)

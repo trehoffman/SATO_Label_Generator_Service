@@ -25,9 +25,9 @@ public class Service
 
 	// Add more operations here and mark them with [OperationContract]
     [OperationContract]
-    public string CreateSatoLabel(int iNumPieces, int iPieceStart, int iPieceEnd, String sLabelPrinterPath)
+    public String CreateSatoLabel(int iNumPieces, int iPieceStart, int iPieceEnd, String sLabelPrinterPath)
     {
-        string result = "OK";
+        String result = "OK";
 
         try
         {

@@ -2,7 +2,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <title>SATO Label Generation Test Page</title>
-    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/label.css" />
     <script src="http://code.jquery.com/jquery-1.11.2.min.js"></script>
     <script src="js/label.js"></script>
 </head>
@@ -12,6 +13,7 @@
         <div>
             <input id="label_printer_path" placeholder="Label Printer Path" value="\\MACHINE_NAME\LABEL_PRINTER_SHARE\" /> <button onclick="callService();">Print SATO Label</button>
         </div>
+        <div class="label-preview"></div>
         <div class="progress_log"></div>
     </div>
 </body>

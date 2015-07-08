@@ -36,11 +36,14 @@ function createLabelSuccess(msg) {
     $(".progress_log").append("Service call succeeded!<br><br>");
     var result = msg.d;
 
-    if (result === "OK") {
+    console.log(msg);
+    $(".label-preview").html(msg.d);
+
+    /*if (result === "OK") {
         $(".progress_log").append("Label Printing succeeded to " + label_printer_path + "<br><br>");
     } else {
         $(".progress_log").append("Label Printing failed to " + label_printer_path + "<br><br>" + result + "<br><br>");
-    }
+    }*/
 }
 
 function createLabelFailure(msg) {
