@@ -31,10 +31,41 @@ public class SatoLabel
 
     //font variables
     private int current_darkness = 0;
-    private String current_font = "";
+    private Font current_font;
     //private Object current_vector_font = {"", 0, 0, 0};
     private int[] current_font_expansion = {0,0};
     private int current_rotation = 0;
+
+    //font list
+    private static Font[] fonts = new Font[] {
+        new Font("XU",5,9),
+        new Font("XS",17,17),
+        new Font("XM",24,24),
+        new Font("XB0",48,48),
+        new Font("XB1",48,48),
+        new Font("XL",48,48),
+        new Font("U",5,9),
+        new Font("S",8,15),
+        new Font("M",13,20),
+        new Font("WB0",18,30),
+        new Font("WB1",18,30),
+        new Font("WL",28,52),
+        new Font("X20",5,9),
+        new Font("X21",17,17),
+        new Font("X22",24,24),
+        new Font("X23",48,48),
+        new Font("X24",48,48),
+        new Font("K1",16,16),
+        new Font("K2",24,24),
+        new Font("K3",22,22),
+        new Font("K4",32,32),
+        new Font("K5",40,40),
+        new Font("K8",16,16),
+        new Font("K9",24,24),
+        new Font("KA",22,22),
+        new Font("KB",32,32),
+        new Font("KD",40,40)
+    };
 
     //constructors
     public SatoLabel()
@@ -110,7 +141,8 @@ public class SatoLabel
         SetLabelQuantity(label_quantity);
         EndLabel();
 
-        result = PrintLabel();
+        //result = PrintLabel();
+        result = html;
 
         return result;
     }
@@ -160,7 +192,8 @@ public class SatoLabel
         SetLabelQuantity(TotalCount);
         EndLabel();
 
-        result = PrintLabel();
+        //result = PrintLabel();
+        result = html;
 
         return result;
     }
@@ -294,6 +327,13 @@ public class SatoLabel
     	if (font.Length > 0)
     	{
             code_text += saCommand + font;
+            foreach (Font f in fonts)
+            {
+                if (font == f.GetName())
+                {
+                    current_font = f;
+                }
+            }
     	}
     }
 
@@ -309,8 +349,17 @@ public class SatoLabel
 
     public void ReverseImage(int left, int top, int right, int bottom)
     {
+        float xMm = left / dotsPerMm;
+        float yMm = top / dotsPerMm;
+        float widthMm = right / dotsPerMm;
+        float heightMm = bottom / dotsPerMm;
+
+        /* Reverse Color Print page 29*/
         SetPosition(left, top);
         code_text += saCommand + "(" + right.ToString() + "," + bottom.ToString();
+
+        html += "<div style='position:absolute; background-color:rgba(0,0,0,.5); left:" + xMm + "mm; top:" + yMm + "mm; width:" + widthMm + "mm; height:" + heightMm + "mm;'>"
+            + "</div>";
     }
 
     public void SequenceNumbering(int RepeatCount, int StepSize)
@@ -345,9 +394,10 @@ public class SatoLabel
         SetPosition(x, y);
         SetFont(font);
         code_text += text;
-        AddCarriageReturn();
 
-        html += "<div style='position:absolute; top:" + yMm + "mm; left:" + xMm + "mm;'>"
+        //float textWidthMm = current_font.GetMillimeterWidth(dotsPerMm) * text.Length;
+
+        html += "<div style='position:absolute; top:" + yMm + "mm; left:" + xMm + "mm; height: " + current_font.GetMillimeterHeight(dotsPerMm) + "mm;'>" //width:" + textWidthMm + "mm;'>"
             + text
             + "</div>";
     }
@@ -370,6 +420,8 @@ public class SatoLabel
     {
         float xMm = x / dotsPerMm;
         float yMm = y / dotsPerMm;
+        float fontWidthMm = fontWidth / dotsPerMm;
+        float fontHeightMm = fontHeight / dotsPerMm;
 
         /*Outline Font Design page 74*/
         SetPosition(x, y);
@@ -380,7 +432,9 @@ public class SatoLabel
             + fontDesign;
         code_text += saCommand + saOutlineFontPrint + text;
 
-        html += "<div style='position:absolute; top:" + yMm + "mm; left:" + xMm + "mm;'>"
+        //float textWidthMm = fontHeightMm * text.Length;
+
+        html += "<div style='position:absolute; top:" + yMm + "mm; left:" + xMm + "mm; height:" + fontHeightMm + "mm;'>" //width:" + textWidthMm + "mm;
             + text
             + "</div>";
     }
