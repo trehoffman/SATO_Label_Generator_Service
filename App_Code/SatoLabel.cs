@@ -31,13 +31,14 @@ public class SatoLabel
 
     //font variables
     private int current_darkness = 0;
-    private Font current_font;
+    private Font current_font = new Font("",0,0);
     //private Object current_vector_font = {"", 0, 0, 0};
     private int[] current_font_expansion = {0,0};
     private int current_rotation = 0;
 
     //font list
     private static Font[] fonts = new Font[] {
+        new Font("",0,0),
         new Font("XU",5,9),
         new Font("XS",17,17),
         new Font("XM",24,24),
@@ -203,43 +204,25 @@ public class SatoLabel
         String result = "OK";
         String timeStamp = DateTime.Now.ToString();
         int TotalCount = iPieceEnd-iPieceStart;
-        //int iPieceStart = 1;
 
         BeginLabel();
         AddText(425, 10, "WB1", "Sample Label 1");
-        //ReverseImage(72, 1, 510, 39);
-        //AddCarriageReturn();
 
         AddOutlineFontDesignText(92, 125, "B", 320, 200, 0, "SATO");
-        AddCarriageReturn();
         ReverseImage(15, 145, 675, 150);
-        AddCarriageReturn();
 
-        //AddText(15, 300, "XB1", LoadList);
         AddText(15, 350, "XB1", timeStamp);
-        /*
-        AddText(15, 400, "M", "ROUTE: " + sRoute);
-        AddText(15, 450, "M", sAttn);
-        AddText(15, 475, "M", sAdd1);
-        AddText(15, 500, "M", sAdd2);
-        AddText(15, 525, "M", sCountry);
-        AddText(15, 560, "M", "Description:");
-        AddText(15, 585, "XB1", sDesc);
-        AddText(50, 685, "M", dtDelivered);
-        */
 
         AddText(425, 350, "XB1", "# Pieces: " + iNumPieces.ToString());
-        AddText(425, 400, "XB1", "# To Print: " + TotalCount.ToString());
-        //AddText(425, 450, "XB1", "Total: " + TotalCount.ToString());
+        SetVertical(400);
+        SetText("# To Print: " + TotalCount.ToString());
+        SetVertical(450);
+        SetText("Fuck youuuuuuu");
 
-        SetPosition(50, 735);
-        code_text += saCommand + "F0001+0001";
-        code_text += saCommand + "L0102";
-        code_text += saCommand + "M" + iPieceStart.ToString();
-        code_text += saCommand + "L0101";
-        code_text += saCommand + "M" + " PC OF ";
-        code_text += saCommand + "WL1" + TotalCount.ToString();
-        AddCarriageReturn();
+        //BT101020103^BW03100
+        SetPosition(15, 500);
+        SetBarcodeRatioRegistration("1", 01, 02, 01, 03);
+        SetBarcodeRatioOneToThree("W", 03, 100, "bullshit");
 
         SetLabelQuantity(TotalCount);
         EndLabel();
@@ -300,27 +283,34 @@ public class SatoLabel
     public void SetRotation(int value)
     {
         code_text += saCommand + "%" + value.ToString();
+        current_rotation = value;
     }
 
     public void SetBaseReference(int x, int y)
     {
         code_text += saCommand + "A3" + "H" + x.ToString() + "V" + y.ToString();
+        current_baseReference[0] = x;
+        current_baseReference[1] = y;
     }
 
     public void SetHorizontal(int x)
     {
         code_text += saCommand + "H" + x.ToString();
+        current_horizontal = x;
     }
 
     public void SetVertical(int y)
     {
         code_text += saCommand + "V" + y.ToString();
+        current_vertical = y;
     }
 
     public void SetPosition(int x, int y)
     {
         SetHorizontal(x);
+        current_horizontal = x;
         SetVertical(y);
+        current_vertical = y;
     }
 
     public void SetFont(String font) {
@@ -337,14 +327,52 @@ public class SatoLabel
     	}
     }
 
-    public void SetDarkness(String value)
+    public void SetText(String text)
+    {
+        code_text += text;
+
+        float xMm = current_horizontal / dotsPerMm;
+        float yMm = current_vertical / dotsPerMm;
+
+        html += "<div style='position:absolute; left:" + xMm + "mm; top:" + yMm + "mm; height: " + current_font.GetMillimeterHeight(dotsPerMm) + "mm;'>"
+        + text
+        + "</div>";
+    }
+
+    public void SetDarkness(int value)
     {
         code_text += saCommand + "E" + value;
+        current_darkness = value;
     }
 
     public void ExpandFont(int x, int y)
     {
         code_text += saCommand + "L" + x.ToString("D2") + y.ToString("D2");
+        current_font_expansion[0] = x;
+        current_font_expansion[1] = y;
+    }
+
+    public void AddOutlineFontDesignText(int x, int y, String fontType, int fontWidth, int fontHeight, int fontDesign, String text)
+    {
+        float xMm = x / dotsPerMm;
+        float yMm = y / dotsPerMm;
+        float fontWidthMm = fontWidth / dotsPerMm;
+        float fontHeightMm = fontHeight / dotsPerMm;
+
+        /*Outline Font Design page 74*/
+        SetPosition(x, y);
+        code_text += saCommand + saOutlineFontDesignSelection
+            + fontType + ","
+            + fontWidth + ","
+            + fontHeight + ","
+            + fontDesign;
+        code_text += saCommand + saOutlineFontPrint + text;
+
+        //float textWidthMm = fontHeightMm * text.Length;
+
+        html += "<div style='position:absolute; top:" + yMm + "mm; left:" + xMm + "mm; height:" + fontHeightMm + "mm;'>" //width:" + textWidthMm + "mm;
+            + text
+            + "</div>";
     }
 
     public void ReverseImage(int left, int top, int right, int bottom)
@@ -364,13 +392,32 @@ public class SatoLabel
 
     public void SequenceNumbering(int RepeatCount, int StepSize)
     {
-        //need to format RepeatCount and StepSize
-        code_text += saCommand + "F" + RepeatCount + StepSize;
+        code_text += saCommand + "F" + RepeatCount.ToString("D4") + StepSize.ToString("D4");
     }
 
-    public void SetBarcodeRatio(String sCode, String sSymbol, int narrowSpaceInDots, int wideSpaceInDots, int narrowBarInDots, int wideBarInDots) { //aka Barcode2
-        //formatting needed...
-        code_text += saCommand + sCode + sSymbol + narrowSpaceInDots + wideSpaceInDots + narrowBarInDots + wideBarInDots;
+    public void SetBarcodeRatioRegistration(String barcodeType, int narrowSpace, int wideSpace, int narrowBar, int wideBar)
+    {
+        /*Barcode Ratio Registration page 128*/
+        code_text += saCommand + "BT"
+            + barcodeType
+            + narrowSpace.ToString("D2")
+            + wideSpace.ToString("D2")
+            + narrowBar.ToString("D2")
+            + wideBar.ToString("D2");
+    }
+
+    public void SetBarcodeRatioOneToThree(String barcodeType, int narrowBarWidth, int barcodeHeight, String data) {
+        /*Barcode Ratio 1:3*/
+        code_text += saCommand + "B"
+            + barcodeType
+            + narrowBarWidth.ToString("D2")
+            + barcodeHeight.ToString("D3") 
+            + "*" + data + "*";
+
+        float xMm = current_horizontal / dotsPerMm;
+        float yMm = current_vertical / dotsPerMm;
+
+        html += "<div style='position:absolute; left:" + xMm + "mm; top:" + yMm + "mm;'>*" + data + "*</div>";
     }
 
     public void Barcode3(String sCode, int expFactor, int heightInDots)
@@ -388,18 +435,9 @@ public class SatoLabel
     //futher manipulation functions
     public void AddText(int x, int y, String font, String text)
     {
-        float xMm = x / dotsPerMm;
-        float yMm = y / dotsPerMm;
-
         SetPosition(x, y);
         SetFont(font);
-        code_text += text;
-
-        //float textWidthMm = current_font.GetMillimeterWidth(dotsPerMm) * text.Length;
-
-        html += "<div style='position:absolute; top:" + yMm + "mm; left:" + xMm + "mm; height: " + current_font.GetMillimeterHeight(dotsPerMm) + "mm;'>" //width:" + textWidthMm + "mm;'>"
-            + text
-            + "</div>";
+        SetText(text);
     }
 
     public void AddBarcode(int x, int y, String data)
@@ -414,29 +452,6 @@ public class SatoLabel
         SetPosition(x, y);
         code_text += "^F0001+0001^BT101020103^BW03050*" + data + "*";
         SetRotation(0);
-    }
-
-    public void AddOutlineFontDesignText(int x, int y, String fontType, int fontWidth, int fontHeight, int fontDesign, String text)
-    {
-        float xMm = x / dotsPerMm;
-        float yMm = y / dotsPerMm;
-        float fontWidthMm = fontWidth / dotsPerMm;
-        float fontHeightMm = fontHeight / dotsPerMm;
-
-        /*Outline Font Design page 74*/
-        SetPosition(x, y);
-        code_text += saCommand + saOutlineFontDesignSelection
-            + fontType + ","
-            + fontWidth  + ","
-            + fontHeight + ","
-            + fontDesign;
-        code_text += saCommand + saOutlineFontPrint + text;
-
-        //float textWidthMm = fontHeightMm * text.Length;
-
-        html += "<div style='position:absolute; top:" + yMm + "mm; left:" + xMm + "mm; height:" + fontHeightMm + "mm;'>" //width:" + textWidthMm + "mm;
-            + text
-            + "</div>";
     }
 
     public void AddPiecesLine(int x, int y, String sPieceNum, int iNumPieces, int iWeight, String sSecureCode)
