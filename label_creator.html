@@ -1,0 +1,94 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>SATO Label Generation Test Page</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/label.css" />
+    <link rel="stylesheet" href="css/menu.css" />
+    <script src="js/jquery-1.12.3.min.js"></script>
+    <script>
+        function changeSize(size) {
+            console.log("changeSize");
+            $("#myCanvas").removeClass("four-by-four");
+            $("#myCanvas").removeClass("four-by-three");
+
+            if (size === "4x4") {
+                $("#myCanvas").addClass("four-by-four");
+            } else if (size === "4x3") {
+                $("#myCanvas").addClass("four-by-three");
+            } else {
+                $("#myCanvas").addClass("four-by-four");
+            }
+        }
+
+        function initDraw(canvas) {
+            var mouse = {
+                x: 0,
+                y: 0,
+                startX: 0,
+                startY: 0,
+                drawing: false
+            };
+
+            function setMousePosition(evt) {
+                var rect = canvas.getBoundingClientRect();
+
+                mouse.x = evt.clientX - rect.left;
+                mouse.y = evt.clientY - rect.top;
+            }
+
+            canvas.onmousemove = function (e) {
+                setMousePosition(e);
+            }
+
+            canvas.onclick = function (e) {
+                if (mouse.drawing) {
+                    console.log(mouse);
+
+                    var ctx = canvas.getContext("2d");
+                    console.log(mouse.startX);
+                    console.log(mouse.startY);
+                    console.log(mouse.x - mouse.startX);
+                    console.log(mouse.y - mouse.startY);
+                    ctx.rect(mouse.startX, mouse.startY, mouse.x-mouse.startX, mouse.y-mouse.startY);
+                    ctx.stroke();
+                    ctx.fillStyle = "red";
+                    ctx.fill();
+
+                    mouse.drawing = false;
+                    canvas.style.cursor = "default";
+                    console.log("finsihed.");
+                } else {
+                    console.log("begun.");
+                    mouse.startX = mouse.x;
+                    mouse.startY = mouse.y;
+                    mouse.drawing = true;
+                    canvas.style.cursor = "crosshair";
+                }
+            }
+        }
+
+        $(function () {
+            initDraw(document.getElementById("myCanvas"));
+        });
+    </script>
+</head>
+<body>
+    <div class="background_cover">
+        <h1>SATO Label Creator Test</h1>
+        <div>
+            <div class="dropdown">
+                <button class="dropbtn">Size</button>
+                <div class="dropdown-content">
+                    <a href="#" onclick="changeSize('4x4');">4x4</a>
+                    <a href="#" onclick="changeSize('4x3');">4x3</a>
+                </div>
+            </div>
+        </div>
+        <div class="label-preview">
+            <canvas id="myCanvas" width="384" height="384" style="background-color:yellow;"></canvas>
+        </div>
+        <div class="progress_log"></div>
+    </div>
+</body>
+</html>

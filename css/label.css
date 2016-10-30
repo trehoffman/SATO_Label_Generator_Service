@@ -1,11 +1,20 @@
 ﻿body {
 }
 
-.four-by-four
-{
+#myCanvas {
+}
+
+.four-by-four {
     position: relative;
     width: 4in;
     height: 4in;
+    background-color: yellow;
+}
+
+.four-by-three {
+    position: relative;
+    width: 4in;
+    height: 3in;
     background-color: yellow;
 }
 
