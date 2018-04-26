@@ -76,6 +76,7 @@ public class SatoLabel
 
 	public SatoLabel(String sLabelPrinterPath)
     {
+        System.Diagnostics.Debug.WriteLine("SatoLabelInitialization");
         SetLabelPrinter(sLabelPrinterPath);
 	}
 
@@ -201,6 +202,7 @@ public class SatoLabel
 
     public String CreateSampleLabel1(int iNumPieces, int iPieceStart, int iPieceEnd)
     {
+        System.Diagnostics.Debug.WriteLine("CreateSampleLabel1");
         String result = "OK";
         String timeStamp = DateTime.Now.ToString();
         int TotalCount = iPieceEnd-iPieceStart;
@@ -227,9 +229,7 @@ public class SatoLabel
         SetLabelQuantity(TotalCount);
         EndLabel();
 
-        //result = PrintLabel();
-        result = html;
-
+        result = PrintLabel();
         return result;
     }
 

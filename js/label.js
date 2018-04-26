@@ -1,4 +1,4 @@
-﻿var label_printer_path = "\\\\TREVOR32\\Users\\trevor\\SharedFolder\\";
+﻿var label_printer_path = "\\\\localhost\\SharedFolder\\";
 var label_data = {
     iNumPieces: 5,
     iPieceStart: 2,
@@ -13,45 +13,35 @@ function callService() {
     label_data.sLabelPrinterPath = label_printer_path;
 
     console.log(label_data);
-    createLabel().done(createLabelSuccess).fail(createLabelFailure);
+    createLabel().done(function (msg) {
+        console.log("createLabelSuccess");
+        console.log(msg);
+        if (msg.d.Result == "OK") {
+            $(".progress_log").append("Service call succeeded!<br><br>");
+            $(".label-preview").html(msg.d.Data);
+        } else {
+            $(".progress_log").append("Error<br><br>");
+            $(".label-preview").html(msg.d.Result);
+        }
+    }).fail(function (msg) {
+        console.log("createLabelFailure");
+        console.log(msg);
+        if (msg) {
+            $(".progress_log").append("AJAX call to service failed!\n\nStatus: " + msg.status + "<br><br>" + msg.statusText + "<br><br>");
+        } else {
+            $(".progress_log").append('AJAX call to service failed!' + "<br><br>");
+        }
+    });
 }
 
 function createLabel() {
     console.log("createLabel");
     $(".progress_log").append("Trying to call service...<br><br>");
     return $.ajax({
-        type: "POST", //GET or POST or PUT or DELETE verb
-        url: "/Service.svc/CreateSatoLabel", // Location of the service
-        data: JSON.stringify(label_data), //Data sent to server
-        contentType: "application/json; charset=utf-8", // content type sent to server
-        dataType: "json", //Expected data format from server
-        processdata: true, //True or False
-        async: true,
-        cache: false
+        type: "POST",
+        url: "/Default.aspx/CreateSatoLabel",
+        data: JSON.stringify(label_data),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
     });
-}
-
-function createLabelSuccess(msg) {
-    console.log("createLabelSuccess");
-    $(".progress_log").append("Service call succeeded!<br><br>");
-    var result = msg.d;
-
-    console.log(msg);
-    $(".label-preview").html(msg.d);
-
-    /*if (result === "OK") {
-        $(".progress_log").append("Label Printing succeeded to " + label_printer_path + "<br><br>");
-    } else {
-        $(".progress_log").append("Label Printing failed to " + label_printer_path + "<br><br>" + result + "<br><br>");
-    }*/
-}
-
-function createLabelFailure(msg) {
-    console.log("createLabelFailure");
-    console.log(msg);
-    if (msg) {
-        $(".progress_log").append("AJAX call to service failed!\n\nStatus: " + msg.status + "<br><br>" + msg.statusText + "<br><br>");
-    } else {
-        $(".progress_log").append('AJAX call to service failed!' + "<br><br>");
-    }
 }

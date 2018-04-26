@@ -16,6 +16,7 @@ public class FileOperations
 
     public String CopyDataToLocation(String sData, String sCopyToLocation)
     {
+        System.Diagnostics.Debug.WriteLine("CopyDataToLocation");
         String result = "OK";
         try
         {
@@ -32,6 +33,8 @@ public class FileOperations
             {
                 sCopyToPath = System.IO.Path.Combine(sCopyToLocation, sTempFileName);
             }
+
+            System.Diagnostics.Debug.WriteLine(tempPath);
 
             //write data to temporary file
             System.IO.File.WriteAllText(tempPath, sData);
@@ -55,6 +58,7 @@ public class FileOperations
 
     public String CopyFileToLocation(String sCopyFromLocation, String sCopyToLocation)
     {
+        System.Diagnostics.Debug.WriteLine("CopyFileToLocation");
         String result = "OK";
         try
         {
