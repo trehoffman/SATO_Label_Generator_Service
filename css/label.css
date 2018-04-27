@@ -13,3 +13,10 @@
 {
     border:1px solid black;
 }
+
+.four-by-three {
+    position: relative;
+    width: 4in;
+    height: 3in;
+    background-color: yellow;
+}
