@@ -155,7 +155,6 @@ function SatoLabel() {
         me.setPosition(x, y);
         me.setFont(font);
         me.code.push(text);
-        me.addCarriageReturn();
     };
 
     this.addBarcode = function(x, y, data) {

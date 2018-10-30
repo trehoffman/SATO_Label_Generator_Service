@@ -7,14 +7,29 @@
     <body>
         <div class="toolbar">
             <button type="button" onclick="satoLabel.helloWorld();">Hello World</button>
+            <button type="button" onclick="satoLabel.initialize();">Clear</button>
             <button type="button" onclick="satoLabel.startLabel();">Start Label</button>
+            <button type="button" onclick="satoLabel.addCarriageReturn();">New Line</button>
+            Horizontal Position <input class="horizontal-position" /> 
+            Vertical Position <input class="vertical-position" /> 
+            Font <input class="font" />
+            Text <input class="text" />
+            <button type="button" class="addText">Add Text</button>
             <button type="button" onclick="satoLabel.endLabel();">End Label</button>
         </div>
-        <div class="display"></div>
+        <div class="display" style="height:400px;width:100%;white-space:pre-wrap;overflow:scroll;border:1px solid black;"></div>
         <script src="js/sato-label.js"></script>
         <script>
             var satoLabel = new SatoLabel();
             document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('addText')) {
+                    var x = document.querySelector('.horizontal-position').value.trim();
+                    var y = document.querySelector('.vertical-position').value.trim();
+                    var font = document.querySelector('.font').value.trim().toUpperCase();
+                    var text = document.querySelector('.text').value.trim();
+                    satoLabel.addText(x, y, font, text);
+                }
+
                 setTimeout(function() {
                     document.querySelector('.display').innerHTML = satoLabel.text();
                 }, 250);
