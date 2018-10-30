@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>SATO Label Test</title>
+        <meta charset="utf-8">
+    </head>
+    <body>
+        <div class="toolbar">
+            <button type="button" onclick="satoLabel.helloWorld();">Hello World</button>
+            <button type="button" onclick="satoLabel.startLabel();">Start Label</button>
+            <button type="button" onclick="satoLabel.endLabel();">End Label</button>
+        </div>
+        <div class="display"></div>
+        <script src="js/sato-label.js"></script>
+        <script>
+            var satoLabel = new SatoLabel();
+            document.addEventListener('click', function(e) {
+                setTimeout(function() {
+                    document.querySelector('.display').innerHTML = satoLabel.text();
+                }, 250);
+            });
+        </script>
+    </body>
+</html>
