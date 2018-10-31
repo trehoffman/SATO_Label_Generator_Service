@@ -61,6 +61,127 @@ function SatoLabel() {
         return me.code.join('');
     };
 
+    this.html = function() {
+        var html = '';
+        var brackets = [];
+        var command_started = false;
+        var horizontal_position = 0;
+        var vertical_position = 0;
+
+        var segment = me.text();
+        for (var j = 0; j < segment.length; j++) {
+            var character = segment[j];
+            console.log(character);
+            switch (character) {
+                case '{':
+                    brackets.push(character);
+                    break;
+                case '}':
+                    if (brackets.length == 0) {
+                        alert('missing starting bracket');
+                        return '';
+                    }
+                    brackets.pop();
+                    break;
+                case '^':
+                    command_started = true;
+                    break;
+                case 'A':
+                    if (!command_started) {
+                        alert("command not started");
+                        return '';
+                    }
+                    command_started = false;
+                    break;
+                case 'H':
+                    if (!command_started) {
+                        alert("command not started");
+                        return '';
+                    }
+                    //get next four characters and determine position value
+                    var position = '';
+                    for (var k = j + 1; k < j + 5; k++) {
+                        if (k == segment.length) {
+                            alert('code ends unexpectedly');
+                            return '';
+                        }
+                        var c = segment[k];
+                        console.log(c);
+                        if (isNaN(c)) {
+                            break;
+                        } else {
+                            position += c;
+                        }
+                    }
+                    if (position == '') {
+                        alert('position not specified');
+                        return;
+                    }
+                    horizontal_position = parseInt(position);
+                    j += position.length;
+                    break;
+                case 'V':
+                    if (!command_started) {
+                        alert("command not started");
+                        return '';
+                    }
+                    //get next four characters and determine position value
+                    var position = '';
+                    for (var k = j + 1; k < j + 5; k++) {
+                        if (k == segment.length) {
+                            alert('code ends unexpectedly');
+                            return '';
+                        }
+                        var c = segment[k];
+                        if (isNaN(c)) {
+                            break;
+                        } else {
+                            position += c;
+                        }
+                    }
+                    if (position == '') {
+                        alert('position not specified');
+                        return;
+                    }
+                    vertical_position = parseInt(position);
+                    j += position.length;
+                    break;
+                case 'M':
+                    if (!command_started) {
+                        alert("command not started");
+                        return '';
+                    }
+                    //get next characters up to a command or carriage return
+                    var text = '';
+                    for (k = j + 1; k < segment.length; k++) {
+                        if (k == segment.length) {
+                            alert('code ends unexpectedly');
+                            return '';
+                        }
+                        var c = segment[k];
+                        if ((c == '^') || (c == '/')) {
+                            break;
+                        } else {
+                            text += c;
+                        }
+                    }
+                    html += '<div style="width:' + horizontal_position + 'in;height:' + vertical_position + 'in;white-space:nowrap;overflow:visible;">' + text + '</div>';
+                    j += text.length;
+                    break;
+                case 'Z':
+                    if (!command_started) {
+                        alert("command not started");
+                        return '';
+                    }
+                    command_started = false;
+                    break;
+                default:
+                    break;
+            }
+        }
+        return html;
+    };
+
     this.initialize = function() {
         me.code = [];
     };

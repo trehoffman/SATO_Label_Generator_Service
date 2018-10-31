@@ -18,6 +18,7 @@
             <button type="button" onclick="satoLabel.endLabel();">End Label</button>
         </div>
         <div class="display" style="height:400px;width:100%;white-space:pre-wrap;overflow:scroll;border:1px solid black;"></div>
+        <div class="label" style="height:4in;width:4in;background-color:yellow;border:1px solid black;"></div>
         <script src="js/sato-label.js"></script>
         <script>
             var satoLabel = new SatoLabel();
@@ -32,6 +33,7 @@
 
                 setTimeout(function() {
                     document.querySelector('.display').innerHTML = satoLabel.text();
+                    document.querySelector('.label').innerHTML = satoLabel.html();
                 }, 250);
             });
         </script>
