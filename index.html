@@ -22,6 +22,7 @@
         <div class="label" style="position:relative;height:812px;width:812px;background-color:yellow;border:1px solid black;"></div>
         <script src="js/sato-label.js"></script>
         <script>
+            var satoPrinter = new SatoPrinter();
             var satoLabel = new SatoLabel();
             document.addEventListener('click', function(e) {
                 if (e.target.classList.contains('addText')) {
@@ -34,7 +35,7 @@
 
                 setTimeout(function() {
                     document.querySelector('.display').innerHTML = satoLabel.text();
-                    document.querySelector('.label').innerHTML = satoLabel.html();
+                    document.querySelector('.label').innerHTML = satoPrinter.html(satoLabel.text());
                 }, 250);
             });
         </script>
