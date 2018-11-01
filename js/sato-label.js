@@ -2,6 +2,9 @@ function SatoPrinter() {
     var me = this;
 
     this.code_type = 'non-standard';
+    this.quantity = 1;
+    this.JobIdNumber = 0;
+    this.JobName = '';
     this.dotsPerMm = 8; //for 203 dpi print heads, 12 for 305, 24 for 609
     this.size =  {
         width: 4,
@@ -10,35 +13,50 @@ function SatoPrinter() {
     this.currentPosition =  {
         baseReference: [0,0],
         horizontal: 0,
-        vertical: 0
-    };
-    this.fonts = fonts,
-    this.font = {
-        font: new Font(),
-        darkness: 0,
+        vertical: 0,
+        rotation: 0,
         expansion: [0,0],
-        rotation: 0
+        darkness: 0
     };
+    this.barcode = {
+        type: '',
+        narrowSpace: '',
+        wideSpace: '',
+        narrowBar: '',
+        wideBar: ''
+    };
+    this.fonts = fonts;
     this.illegal_characters = [ '{', '}', '^', '~', '@', '!', ']'];
     this.commands = new Commands();
 
     this.executeCommand = function(command, code) {
         var segments = code.split(command.command);
-        console.log(segments);
         try {
             var params = segments[1];
         } catch (e) {
             var params = [];
         }
-        console.log(params);
         switch (command.type) {
             case 'Control':
                 switch (command.command) {
                     case 'A':
+                        me.quantity = 1;
                         return '<div class="label" style="position:relative;height:812px;width:812px;background-color:yellow;border:1px solid black;">';
                     case 'Z':
                         //TODO: if quantity is greater than 1 then make that many labels
                         return '</div>';
+                    case 'Q':
+                        me.quantity = parseInt(params.trim());
+                        return '';
+                    case 'ID':
+                        //TODO
+                        return '';
+                    case 'WK':
+                        //TODO
+                        return '';
+                    case 'CR':
+                        //TODO
+                        return '';
                     default:
                         return '';
                 };
@@ -55,18 +73,171 @@ function SatoPrinter() {
                 };
             case 'Modification':
                 switch (command.command) {
+                    case 'P':
+                        return '';
+                    case 'L':
+                        if ((params.length < 4) || (IsNaN(parseInt(params)))) {
+                            console.error('incorrect parameters');
+                            return '';
+                        }
+                        var x = parseInt(params.substr(0,2));
+                        var y = parseInt(params.substr(2));
+                        me.currentPosition.expansion = [x,y];    
+                        return '';
+                    case 'PS':
+                        return '';
+                    case 'PR':
+                        return '';
+                    case '%':
+                        var rotative_direction = parseInt(params.trim());
+                        var rotation = 0;
+                        if (IsNaN(rotative_direction)) {
+                            console.error('incorrect parameters');
+                            return '';
+                        }
+                        switch(rotative_direction) {
+                            case 1:
+                                rotation = 0;
+                                break;
+                            case 2:
+                                rotation = 270;
+                                break;
+                            case 3:
+                                rotation = 180;
+                                break;
+                            case 4:
+                                rotation = 90;
+                                break;
+                            default:
+                                rotation = 0;
+                                break;
+                        };
+                        me.currentPosition.rotation = rotation;
+                        return '';
+                    case 'R':
+                        switch (me.currentPosition.rotation) {
+                            case 0:
+                                me.currentPosition.rotation = 270;
+                                break;
+                            case 90:
+                                me.currentPosition.rotation = 0;
+                                break;
+                            case 180:
+                                me.currentPosition.rotation = 90;
+                                break;
+                            case 270:
+                                me.currentPostiion.rotation = 180;
+                                break;
+                            default:
+                                me.currentPosition.rotation -= 90;
+                                if (me.currentPosition.rotation < 0) {
+                                    me.currentPosition.rotation += 360;
+                                }
+                                break;
+                        };
+                        return '';
+                    case 'N':
+                        me.currentPosition.rotation = 0;
+                        return '';
+                    case 'F':
+                        var p = params.split(',');
+                        var required_params;
+                        if (p[0].contains('+')) {
+                            required_params = p[0].split('+');
+                        } else if (p[0].contains('-')) {
+                            required_params = p[0].split('-');
+                        } else {
+                            console.error('incorrect parameters');
+                            return '';
+                        }
+                        //TODO: figure out how this works and finish implementation
+                        return '';
+                    case 'FW':
+                        return '';
+                    case 'FC':
+                        return '';
+                    case 'FT':
+                        return '';
+                    case '(':
+                        return '';
+                    case 'KC':
+                        return '';
+                    case '&':
+                        return '';
+                    case '/':
+                        return '';
+                    case '0':
+                        return '';
+                    case 'WD':
+                        return '';
+                    case 'J':
+                        return '';
+                    case 'RF':
+                        return '';
+                    case 'RM':
+                        return '';
+                    case 'KS':
+                        return '';
                     default:
                         return '';
                 };
             case 'Font':
                 switch (command.command) {
                     case 'M':
-                        return '<div style="position:absolute;left:' + me.currentPosition.horizontal + 'px;top:' + me.currentPosition.vertical + 'px;white-space:nowrap;overflow:visible;">' + params + '</div>';
+                        //TODO: factor in text espansion and darkess
+                        var x = me.currentPosition.baseReference[0] + me.currentPosition.horizontal;
+                        var y = me.currentPosition.baseReference[1] + me.currentPosition.vertical;
+                        var css = 'position:absolute;left:' + x + 'px;top:' + y + 'px;white-space:nowrap;overflow:visible;'
+                            + 'transform:rotate(' + me.currentPosition.rotation  + 'deg);';
+                        return '<div style="' + css + '">' 
+                            + params 
+                            + '</div>';
                     default:
                         return '';
                 };
             case 'Barcode':
                 switch (command.command) {
+                    case 'BT':
+                        if ((params.length < 9) || (IsNaN(parseInt(params)))) {
+                            console.error('incorrect parameters');
+                            return '';
+                        }
+                        switch(parseInt(params[0])) {
+                            case 0:
+                                me.barcode.type = 'CODABAR (NW-7)';
+                                break;
+                            case 1:
+                                me.barcode.type = 'CODE39';
+                                break;
+                            case 2:
+                                me.barcode.type = 'ITF';
+                                break;
+                            case 5: 
+                                me.barcode.type = 'Industrial 2of5';
+                                break;
+                            case 6:
+                                me.barcode.type = 'Matrix 2of5';
+                                break;
+                            default:
+                                me.barcode.type = 'CODABAR (NW-7)';
+                                break;
+                        }; 
+                        me.barcode.narrowSpace = parseInt(params.substr(1,2));
+                        me.barcode.wideSpace = parseInt(params.substr(3,2));
+                        me.barcode.narrowBar = parseInt(params.substr(5,2));
+                        me.barcode.wideBar = parseInt(params.substr(7,2));
+                        return '';
+                    case 'BW':
+                        if ((params.length < 8) || (params.indexOf('*') == -1)){
+                            console.error('incorrect parameters');
+                            return '';
+                        }
+                        var p = params.split('*');
+                        var narrowBar = p[0].subtr(0,2);
+                        var barcodeHeight = p[0].substr(2,3);
+                        var printData = p[1];
+                        //TODO: return barcode HTML
+                        return '';
                     default:
                         return '';
                 };
@@ -123,29 +294,17 @@ function SatoPrinter() {
     this.html = function(code) {
         var html = '';
         var segments = code.split('^');
-        console.log(segments);
         for (var i = 0; i < segments.length; i++) {
             var segment = segments[i];
             if (segment.length == 0) {
                 continue;
             }
-            /*
-            if (segment.length == 1) {
-                var command = me.commands.get(segment);
-                console.log(command);
-                html += me.executeCommand(command, segment);
-                console.log(html);
-                continue;
-            }*/
             
             //process segments longer than 1 character
             var commands = me.commands.softGet(segment);
-            console.log(commands);
             if (commands.length == 1) {
                 var command = commands[0];
-                console.log(command);
                 html += me.executeCommand(command, segment);
-                console.log(html);
                 continue;
             }
         }

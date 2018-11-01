@@ -17,7 +17,7 @@
             <button type="button" class="addText">Add Text</button>
             <button type="button" onclick="satoLabel.endLabel();">End Label</button>
         </div>
-        <div class="display" style="display:inline-block;height:400px;width:49%;white-space:pre-wrap;overflow:scroll;border:1px solid black;"></div>
+        <textarea class="display" style="display:inline-block;height:400px;width:49%;border:1px solid black;"></textarea>
         <div class="console" style="display:inline-block;height:400px;width:49%;white-space:pre-wrap;overflow:scroll;border:1px solid black;"></div>
         <div class="labels"></div>
         <script src="js/sato-label.js"></script>
@@ -34,7 +34,17 @@
                 }
 
                 setTimeout(function() {
-                    document.querySelector('.display').innerHTML = satoLabel.text();
+                    document.querySelector('.display').value = satoLabel.text();
+                    document.querySelector('.labels').innerHTML = satoPrinter.html(satoLabel.text());
+                }, 250);
+            });
+
+            document.addEventListener('keyup', function(e) {
+                if (e.target.classList.contains('display')) {
+                    satoLabel.code = e.target.value;
+                }
+
+                setTimeout(function() {
                     document.querySelector('.labels').innerHTML = satoPrinter.html(satoLabel.text());
                 }, 250);
             });
