@@ -24,12 +24,13 @@ function SatoPrinter() {
 
     this.executeCommand = function(command, code) {
         var segments = code.split(command.command);
+        console.log(segments);
         try {
             var params = segments[1];
         } catch (e) {
             var params = [];
         }
-
+        console.log(params);
         switch (command.type) {
             case 'Control':
                 switch (command.command) {
@@ -44,10 +45,10 @@ function SatoPrinter() {
             case 'Print Position':
                 switch (command.command) {
                     case 'H':
-                        currentPosition.horizontal = parseInt(params[0].trim());
+                        me.currentPosition.horizontal = parseInt(params.trim());
                         return '';
                     case 'V':
-                        currentPosition.vertical = parseInt(params[0].trim());
+                        me.currentPosition.vertical = parseInt(params.trim());
                         return '';
                     default:
                         return '';
@@ -59,6 +60,8 @@ function SatoPrinter() {
                 };
             case 'Font':
                 switch (command.command) {
+                    case 'M':
+                        return '<div style="position:absolute;left:' + me.currentPosition.horizontal + 'px;top:' + me.currentPosition.vertical + 'px;white-space:nowrap;overflow:visible;">' + params + '</div>';
                     default:
                         return '';
                 };
@@ -126,12 +129,25 @@ function SatoPrinter() {
             if (segment.length == 0) {
                 continue;
             }
+            /*
             if (segment.length == 1) {
                 var command = me.commands.get(segment);
+                console.log(command);
                 html += me.executeCommand(command, segment);
+                console.log(html);
+                continue;
+            }*/
+            
+            //process segments longer than 1 character
+            var commands = me.commands.softGet(segment);
+            console.log(commands);
+            if (commands.length == 1) {
+                var command = commands[0];
+                console.log(command);
+                html += me.executeCommand(command, segment);
+                console.log(html);
                 continue;
             }
-            //TODO: process segments longer than 1 character
         }
         return html;
     };
@@ -688,14 +704,25 @@ function Commands() {
         new Command('Common Commands for All Languages','17-16','DH','File Deletion',374)
     ];
 
-    this.get = function(c) {
+    this.get = function(segment) {
         var list = [];
         for (var i = 0; i < me.commands.length; i++) {
             var command = me.commands[i];
-            if (command.command == c) {
+            if (command.command == segment) {
                 list.push(command);
             }
         }
         return list;
     };
+
+    this.softGet = function(segment) {
+        var list = [];
+        for (var i = 0; i < me.commands.length; i++) {
+            var command = me.commands[i];
+            if (segment.startsWith(command.command)) {
+                list.push(command);
+            }
+        }
+        return list;
+    }
 }
