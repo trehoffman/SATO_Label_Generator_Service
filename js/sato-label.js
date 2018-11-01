@@ -22,7 +22,103 @@ function SatoPrinter() {
     this.illegal_characters = [ '{', '}', '^', '~', '@', '!', ']'];
     this.commands = new Commands();
 
+    this.executeCommand = function(command, code) {
+        var segments = code.split(command.command);
+        try {
+            var params = segments[1];
+        } catch (e) {
+            var params = [];
+        }
+
+        switch (command.type) {
+            case 'Control':
+                switch (command.command) {
+                    case 'A':
+                        return '<div class="label" style="position:relative;height:812px;width:812px;background-color:yellow;border:1px solid black;">';
+                    case 'Z':
+                        //TODO: if quantity is greater than 1 then make that many labels
+                        return '</div>';
+                    default:
+                        return '';
+                };
+            case 'Print Position':
+                switch (command.command) {
+                    case 'H':
+                        currentPosition.horizontal = parseInt(params[0].trim());
+                        return '';
+                    case 'V':
+                        currentPosition.vertical = parseInt(params[0].trim());
+                        return '';
+                    default:
+                        return '';
+                };
+            case 'Modification':
+                switch (command.command) {
+                    default:
+                        return '';
+                };
+            case 'Font':
+                switch (command.command) {
+                    default:
+                        return '';
+                };
+            case 'Barcode':
+                switch (command.command) {
+                    default:
+                        return '';
+                };
+            case 'Barcode':
+                switch (command.command) {
+                    default:
+                        return '';
+                };
+            case '2D Code':
+                switch (command.command) {
+                    default:
+                        return '';
+                };
+            case 'Graphic':
+                switch (command.command) {
+                    default:
+                        return '';
+                };
+            case 'System':
+                switch (command.command) {
+                    default:
+                        return '';
+                };
+            case 'Calendar Command':
+                switch (command.command) {
+                    default:
+                        return '';
+                };
+            case 'Memory Card':
+                switch (command.command) {
+                    default:
+                        return '';
+                };
+            case 'Intelligent':
+                switch (command.command) {
+                    default:
+                        return '';
+                };
+            case 'RFID':
+                switch (command.command) {
+                    default:
+                        return '';
+                };
+            case 'Common Commands for All Languages':
+                switch (command.command) {
+                    default:
+                        return '';
+                };
+            default:
+                return '';
+        };
+    };
+
     this.html = function(code) {
+        var html = '';
         var segments = code.split('^');
         console.log(segments);
         for (var i = 0; i < segments.length; i++) {
@@ -31,13 +127,13 @@ function SatoPrinter() {
                 continue;
             }
             if (segment.length == 1) {
-                var commands = me.commands.get(segment);
-                console.log(commands);
-                //TODO: process command
+                var command = me.commands.get(segment);
+                html += me.executeCommand(command, segment);
                 continue;
             }
             //TODO: process segments longer than 1 character
         }
+        return html;
     };
 
     /*

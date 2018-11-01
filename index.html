@@ -19,7 +19,7 @@
         </div>
         <div class="display" style="display:inline-block;height:400px;width:49%;white-space:pre-wrap;overflow:scroll;border:1px solid black;"></div>
         <div class="console" style="display:inline-block;height:400px;width:49%;white-space:pre-wrap;overflow:scroll;border:1px solid black;"></div>
-        <div class="label" style="position:relative;height:812px;width:812px;background-color:yellow;border:1px solid black;"></div>
+        <div class="labels"></div>
         <script src="js/sato-label.js"></script>
         <script>
             var satoPrinter = new SatoPrinter();
@@ -35,7 +35,7 @@
 
                 setTimeout(function() {
                     document.querySelector('.display').innerHTML = satoLabel.text();
-                    document.querySelector('.label').innerHTML = satoPrinter.html(satoLabel.text());
+                    document.querySelector('.labels').innerHTML = satoPrinter.html(satoLabel.text());
                 }, 250);
             });
         </script>
