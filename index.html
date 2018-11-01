@@ -20,6 +20,7 @@
         <textarea class="display" style="display:inline-block;height:400px;width:49%;border:1px solid black;"></textarea>
         <div class="console" style="display:inline-block;height:400px;width:49%;white-space:pre-wrap;overflow:scroll;border:1px solid black;"></div>
         <div class="labels"></div>
+        <script src="js/JsBarcode.all.min.js"></script>
         <script src="js/sato-label.js"></script>
         <script>
             var satoPrinter = new SatoPrinter();
@@ -36,6 +37,11 @@
                 setTimeout(function() {
                     document.querySelector('.display').value = satoLabel.text();
                     document.querySelector('.labels').innerHTML = satoPrinter.html(satoLabel.text());
+                    var scripts = document.querySelector('.labels').getElementsByTagName('script');
+                    for (var i = 0; i < scripts.length; i++) {
+                        var script = scripts[i];
+                        eval(script.text);
+                    }
                 }, 250);
             });
 
@@ -46,6 +52,11 @@
 
                 setTimeout(function() {
                     document.querySelector('.labels').innerHTML = satoPrinter.html(satoLabel.text());
+                    var scripts = document.querySelector('.labels').getElementsByTagName('script');
+                    for (var i = 0; i < scripts.length; i++) {
+                        var script = scripts[i];
+                        eval(script.text);
+                    }
                 }, 250);
             });
         </script>

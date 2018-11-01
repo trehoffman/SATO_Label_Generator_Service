@@ -10,6 +10,10 @@ function SatoPrinter() {
         width: 4,
         height: 4
     };
+    this.fonts = fonts;
+    this.illegal_characters = [ '{', '}', '^', '~', '@', '!', ']'];
+    this.commands = new Commands();
+
     this.currentPosition =  {
         baseReference: [0,0],
         horizontal: 0,
@@ -18,6 +22,7 @@ function SatoPrinter() {
         expansion: [0,0],
         darkness: 0
     };
+
     this.barcode = {
         type: '',
         narrowSpace: '',
@@ -25,9 +30,6 @@ function SatoPrinter() {
         narrowBar: '',
         wideBar: ''
     };
-    this.fonts = fonts;
-    this.illegal_characters = [ '{', '}', '^', '~', '@', '!', ']'];
-    this.commands = new Commands();
 
     this.executeCommand = function(command, code) {
         var segments = code.split(command.command);
@@ -76,7 +78,7 @@ function SatoPrinter() {
                     case 'P':
                         return '';
                     case 'L':
-                        if ((params.length < 4) || (IsNaN(parseInt(params)))) {
+                        if ((params.length < 4) || (isNaN(parseInt(params)))) {
                             console.error('incorrect parameters');
                             return '';
                         }
@@ -91,7 +93,7 @@ function SatoPrinter() {
                     case '%':
                         var rotative_direction = parseInt(params.trim());
                         var rotation = 0;
-                        if (IsNaN(rotative_direction)) {
+                        if (isNaN(rotative_direction)) {
                             console.error('incorrect parameters');
                             return '';
                         }
@@ -126,7 +128,7 @@ function SatoPrinter() {
                                 me.currentPosition.rotation = 90;
                                 break;
                             case 270:
-                                me.currentPostiion.rotation = 180;
+                                me.currentPosition.rotation = 180;
                                 break;
                             default:
                                 me.currentPosition.rotation -= 90;
@@ -142,9 +144,9 @@ function SatoPrinter() {
                     case 'F':
                         var p = params.split(',');
                         var required_params;
-                        if (p[0].contains('+')) {
+                        if (p[0].indexOf('+') > -1) {
                             required_params = p[0].split('+');
-                        } else if (p[0].contains('-')) {
+                        } else if (p[0].indexOf('-') > -1) {
                             required_params = p[0].split('-');
                         } else {
                             console.error('incorrect parameters');
@@ -198,7 +200,7 @@ function SatoPrinter() {
             case 'Barcode':
                 switch (command.command) {
                     case 'BT':
-                        if ((params.length < 9) || (IsNaN(parseInt(params)))) {
+                        if ((params.length < 9) || (isNaN(parseInt(params)))) {
                             console.error('incorrect parameters');
                             return '';
                         }
@@ -219,7 +221,7 @@ function SatoPrinter() {
                                 me.barcode.type = 'Matrix 2of5';
                                 break;
                             default:
-                                me.barcode.type = 'CODABAR (NW-7)';
+                                me.barcode.type = 'CODE39';
                                 break;
                         }; 
                         me.barcode.narrowSpace = parseInt(params.substr(1,2));
@@ -233,16 +235,21 @@ function SatoPrinter() {
                             return '';
                         }
                         var p = params.split('*');
-                        var narrowBar = p[0].subtr(0,2);
+                        var narrowBar = p[0].substr(0,2);
                         var barcodeHeight = p[0].substr(2,3);
                         var printData = p[1];
-                        //TODO: return barcode HTML
-                        return '';
-                    default:
-                        return '';
-                };
-            case 'Barcode':
-                switch (command.command) {
+                        var x = me.currentPosition.baseReference[0] + me.currentPosition.horizontal;
+                        var y = me.currentPosition.baseReference[1] + me.currentPosition.vertical;
+                        var css = 'position:absolute;left:' + x + 'px;top:' + y + 'px;white-space:nowrap;overflow:visible;'
+                            + 'transform:rotate(' + me.currentPosition.rotation  + 'deg);';
+                        var barcode_info = 'jsbarcode-format="' + me.barcode.type + '" '
+                            + 'jsbarcode-value="' + printData + '" ';
+                        var barcode_id = Date.now();
+                        return '<svg id="barcode' + barcode_id + '" style="' + css + '" ' + barcode_info + '></svg>'
+                            + '<script>'
+                            + 'JsBarcode("#barcode' + barcode_id + '").init();'
+                            + 'document.querySelector("#barcode' + barcode_id + '").setAttribute("style","' + css + '");'
+                            + '</script>';
                     default:
                         return '';
                 };
@@ -293,20 +300,36 @@ function SatoPrinter() {
 
     this.html = function(code) {
         var html = '';
+        
+        me.currentPosition =  {
+            baseReference: [0,0],
+            horizontal: 0,
+            vertical: 0,
+            rotation: 0,
+            expansion: [0,0],
+            darkness: 0
+        };
+        
+        me.barcode = {
+            type: '',
+            narrowSpace: '',
+            wideSpace: '',
+            narrowBar: '',
+            wideBar: ''
+        };
+
         var segments = code.split('^');
         for (var i = 0; i < segments.length; i++) {
             var segment = segments[i];
             if (segment.length == 0) {
                 continue;
             }
-            
-            //process segments longer than 1 character
-            var commands = me.commands.softGet(segment);
-            if (commands.length == 1) {
-                var command = commands[0];
-                html += me.executeCommand(command, segment);
-                continue;
-            }
+
+            //process commands
+            var command = me.commands.softGet(segment);
+            console.log(segment);
+            console.log(command);
+            html += me.executeCommand(command, segment);
         }
         return html;
     };
@@ -864,14 +887,12 @@ function Commands() {
     ];
 
     this.get = function(segment) {
-        var list = [];
         for (var i = 0; i < me.commands.length; i++) {
             var command = me.commands[i];
             if (command.command == segment) {
-                list.push(command);
+                return command;
             }
         }
-        return list;
     };
 
     this.softGet = function(segment) {
@@ -882,6 +903,15 @@ function Commands() {
                 list.push(command);
             }
         }
-        return list;
+        var best_matching_command;
+        for (var i = 0; i < list.length; i++) {
+            var command = list[i];
+            if (!best_matching_command) {
+                best_matching_command = command;
+            } else if (command.command.length > best_matching_command.command.length) {
+                best_matching_command = command;                
+            }
+        }
+        return best_matching_command;
     }
 }
