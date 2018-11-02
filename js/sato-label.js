@@ -2,7 +2,6 @@ function SatoPrinter() {
     var me = this;
 
     this.code_type = 'non-standard';
-    this.quantity = 1;
     this.JobIdNumber = 0;
     this.JobName = '';
     this.dotsPerMm = 8; //for 203 dpi print heads, 12 for 305, 24 for 609
@@ -10,26 +9,30 @@ function SatoPrinter() {
         width: 4,
         height: 4
     };
-    this.fonts = fonts;
     this.illegal_characters = [ '{', '}', '^', '~', '@', '!', ']'];
     this.commands = new Commands();
+    this.fonts = new Fonts();
 
-    this.currentPosition =  {
-        baseReference: [0,0],
-        horizontal: 0,
-        vertical: 0,
-        rotation: 0,
-        expansion: [0,0],
-        darkness: 0
+    this.initializeReferences = function() {
+        me.currentPosition =  {
+            baseReference: [0,0],
+            horizontal: 0,
+            vertical: 0,
+            rotation: 0,
+            expansion: [0,0],
+            darkness: 0,
+            quantity: 1
+        };
+        
+        me.barcode = {
+            type: '',
+            narrowSpace: '',
+            wideSpace: '',
+            narrowBar: '',
+            wideBar: ''
+        };
     };
-
-    this.barcode = {
-        type: '',
-        narrowSpace: '',
-        wideSpace: '',
-        narrowBar: '',
-        wideBar: ''
-    };
+    me.initializeReferences();
 
     this.executeCommand = function(command, code) {
         var segments = code.split(command.command);
@@ -42,7 +45,7 @@ function SatoPrinter() {
             case 'Control':
                 switch (command.command) {
                     case 'A':
-                        me.quantity = 1;
+                        me.initializeReferences(); //do this on end of label instead?
                         return '<div class="label" style="position:relative;height:812px;width:812px;background-color:yellow;border:1px solid black;">';
                     case 'Z':
                         //TODO: if quantity is greater than 1 then make that many labels
@@ -185,17 +188,19 @@ function SatoPrinter() {
                 };
             case 'Font':
                 switch (command.command) {
-                    case 'M':
+                    default:
                         //TODO: factor in text espansion and darkess
+                        var font = me.fonts.get(command.command);
+                        console.log(font);
                         var x = me.currentPosition.baseReference[0] + me.currentPosition.horizontal;
                         var y = me.currentPosition.baseReference[1] + me.currentPosition.vertical;
-                        var css = 'position:absolute;left:' + x + 'px;top:' + y + 'px;white-space:nowrap;overflow:visible;'
+                        var css = 'white-space:nowrap;overflow:visible;'
+                            + 'position:absolute;left:' + x + 'px;top:' + y + 'px;'
+                            + 'font-size:' + font.dotHeight + 'px;'
                             + 'transform:rotate(' + me.currentPosition.rotation  + 'deg);';
                         return '<div style="' + css + '">' 
                             + params 
                             + '</div>';
-                    default:
-                        return '';
                 };
             case 'Barcode':
                 switch (command.command) {
@@ -300,24 +305,7 @@ function SatoPrinter() {
 
     this.html = function(code) {
         var html = '';
-        
-        me.currentPosition =  {
-            baseReference: [0,0],
-            horizontal: 0,
-            vertical: 0,
-            rotation: 0,
-            expansion: [0,0],
-            darkness: 0
-        };
-        
-        me.barcode = {
-            type: '',
-            narrowSpace: '',
-            wideSpace: '',
-            narrowBar: '',
-            wideBar: ''
-        };
-
+        me.initializeReferences();
         var segments = code.split('^');
         for (var i = 0; i < segments.length; i++) {
             var segment = segments[i];
@@ -333,168 +321,6 @@ function SatoPrinter() {
         }
         return html;
     };
-
-    /*
-    this.html = function(code) {
-        var html = '';
-        var brackets = [];
-        var command_started = false;
-        var horizontal_position = 0;
-        var vertical_position = 0;
-        var label_count = 1;
-
-        var segment = code;
-        for (var j = 0; j < segment.length; j++) {
-            var character = segment[j];
-            console.log(character);
-            switch (character) {
-                case '/':
-                    var text = character;
-                    var k = j + 1;
-                    if (k == segment.length) {
-                        continue;
-                    }
-                    var c = segment[k];
-                    if (c == 'n') {
-                        text += c;
-                    }
-                    j += text.length;
-                    break;
-                case '{':
-                    brackets.push(character);
-                    break;
-                case '}':
-                    if (brackets.length == 0) {
-                        alert('missing starting bracket');
-                        return '';
-                    }
-                    brackets.pop();
-                    break;
-                case '^':
-                    command_started = true;
-                    break;
-                case 'A':
-                    if (!command_started) {
-                        alert("command not started");
-                        return '';
-                    }
-                    command_started = false;
-                    break;
-                case 'H':
-                    if (!command_started) {
-                        alert("command not started");
-                        return '';
-                    }
-                    //get next four characters and determine position value
-                    var position = '';
-                    for (var k = j + 1; k < j + 5; k++) {
-                        if (k == segment.length) {
-                            alert('code ends unexpectedly');
-                            return '';
-                        }
-                        var c = segment[k];
-                        console.log(c);
-                        if (isNaN(c)) {
-                            break;
-                        } else {
-                            position += c;
-                        }
-                    }
-                    if (position == '') {
-                        alert('position not specified');
-                        return;
-                    }
-                    horizontal_position = parseInt(position);
-                    j += position.length;
-                    break;
-                case 'V':
-                    if (!command_started) {
-                        alert("command not started");
-                        return '';
-                    }
-                    //get next four characters and determine position value
-                    var position = '';
-                    for (var k = j + 1; k < j + 5; k++) {
-                        if (k == segment.length) {
-                            alert('code ends unexpectedly');
-                            return '';
-                        }
-                        var c = segment[k];
-                        if (isNaN(c)) {
-                            break;
-                        } else {
-                            position += c;
-                        }
-                    }
-                    if (position == '') {
-                        alert('position not specified');
-                        return;
-                    }
-                    vertical_position = parseInt(position);
-                    j += position.length;
-                    break;
-                case 'M':
-                    if (!command_started) {
-                        alert("command not started");
-                        return '';
-                    }
-                    //get next characters up to a command or carriage return
-                    var text = '';
-                    for (k = j + 1; k < segment.length; k++) {
-                        if (k == segment.length) {
-                            alert('code ends unexpectedly');
-                            return '';
-                        }
-                        var c = segment[k];
-                        if ((c == '^') || (c == '/')) {
-                            break;
-                        } else {
-                            text += c;
-                        }
-                    }
-                    html += '<div style="position:absolute;left:' + horizontal_position + 'px;top:' + vertical_position + 'px;white-space:nowrap;overflow:visible;">' + text + '</div>';
-                    j += text.length;
-                    break;
-                case 'Q':
-                    if (!command_started) {
-                        alert("command not started");
-                        return '';
-                    }
-                    //get next six characters and determine number of labels to print
-                    var position = '';
-                    for (var k = j + 1; k < j + 7; k++) {
-                        if (k == segment.length) {
-                            alert('code ends unexpectedly');
-                            return '';
-                        }
-                        var c = segment[k];
-                        if (isNaN(c)) {
-                            break;
-                        } else {
-                            position += c;
-                        }
-                    }
-                    if (position == '') {
-                        alert('number of labels not specified');
-                        return;
-                    }
-                    label_count = parseInt(label_count);
-                    j += position.length;
-                    break;
-                case 'Z':
-                    if (!command_started) {
-                        alert("command not started");
-                        return '';
-                    }
-                    command_started = false;
-                    break;
-                default:
-                    break;
-            }
-        }
-        return html;
-    };
-    */
 }
 
 function SatoLabel() {
@@ -659,36 +485,48 @@ function Font(name, dotWidth, dotHeight) {
     };
 }
 
-var fonts =  [
-    new Font("",0,0),
-    new Font("XU",5,9),
-    new Font("XS",17,17),
-    new Font("XM",24,24),
-    new Font("XB0",48,48),
-    new Font("XB1",48,48),
-    new Font("XL",48,48),
-    new Font("U",5,9),
-    new Font("S",8,15),
-    new Font("M",13,20),
-    new Font("WB0",18,30),
-    new Font("WB1",18,30),
-    new Font("WL",28,52),
-    new Font("X20",5,9),
-    new Font("X21",17,17),
-    new Font("X22",24,24),
-    new Font("X23",48,48),
-    new Font("X24",48,48),
-    new Font("K1",16,16),
-    new Font("K2",24,24),
-    new Font("K3",22,22),
-    new Font("K4",32,32),
-    new Font("K5",40,40),
-    new Font("K8",16,16),
-    new Font("K9",24,24),
-    new Font("KA",22,22),
-    new Font("KB",32,32),
-    new Font("KD",40,40)
-];
+function Fonts() {
+    var me = this;
+    this.fonts =  [
+        new Font("",0,0),
+        new Font("XU",5,9),
+        new Font("XS",17,17),
+        new Font("XM",24,24),
+        new Font("XB0",48,48),
+        new Font("XB1",48,48),
+        new Font("XL",48,48),
+        new Font("U",5,9),
+        new Font("S",8,15),
+        new Font("M",13,20),
+        new Font("WB0",18,30),
+        new Font("WB1",18,30),
+        new Font("WL",28,52),
+        new Font("X20",5,9),
+        new Font("X21",17,17),
+        new Font("X22",24,24),
+        new Font("X23",48,48),
+        new Font("X24",48,48),
+        new Font("K1",16,16),
+        new Font("K2",24,24),
+        new Font("K3",22,22),
+        new Font("K4",32,32),
+        new Font("K5",40,40),
+        new Font("K8",16,16),
+        new Font("K9",24,24),
+        new Font("KA",22,22),
+        new Font("KB",32,32),
+        new Font("KD",40,40)
+    ];
+
+    this.get = function(command) {
+        for (var i = 0; i < me.fonts.length; i++) {
+            var font = me.fonts[i];
+            if (font.name == command) {
+                return font;
+            }
+        }
+    };
+}
 
 function Command(type, number, command, description, page) {
     var me = this;
