@@ -191,6 +191,7 @@ function SatoPrinter() {
                     default:
                         //TODO: factor in text espansion and darkess
                         var font = me.fonts.get(command.command);
+                        console.log(command.command);
                         console.log(font);
                         var x = me.currentPosition.baseReference[0] + me.currentPosition.horizontal;
                         var y = me.currentPosition.baseReference[1] + me.currentPosition.vertical;
@@ -317,7 +318,9 @@ function SatoPrinter() {
             var command = me.commands.softGet(segment);
             console.log(segment);
             console.log(command);
-            html += me.executeCommand(command, segment);
+            if (command) {
+                html += me.executeCommand(command, segment);
+            }
         }
         return html;
     };
@@ -498,6 +501,9 @@ function Fonts() {
         new Font("U",5,9),
         new Font("S",8,15),
         new Font("M",13,20),
+        new Font("M1",13,20),
+        new Font("ML",13,20),
+        new Font("WB",18,30),
         new Font("WB0",18,30),
         new Font("WB1",18,30),
         new Font("WL",28,52),
@@ -589,7 +595,10 @@ function Commands() {
         new Command('Font','8-13','U','U Font (Basic size 5x9 dots)',64),
         new Command('Font','8-14','S','S Font (Basic size 5x9 dots)',66),
         new Command('Font','8-15','M','M Font (Basic size 13x20 dots)',68),
+        new Command('Font','','M1','',0),
+        new Command('Font','','ML','',0),
         new Command('Font','8-16','WB','WB Font (Basic size 18x30 dots)',70),
+        new Command('Font','','WB1','',0),
         new Command('Font','8-17','WL','WL Font (Basic size 28x52 dots)',72),
         new Command('Font','8-18','$','Outline Font Design',74),
         new Command('Font','8-19','$=','Outline Font Print',76),
