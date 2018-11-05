@@ -347,7 +347,7 @@ function SatoLabel() {
     };
 
     this.initialize = function() {
-        me.code = [];
+        me.code = '';
     };
 
     this.startLabel = function() {
@@ -589,6 +589,7 @@ function Commands() {
         new Command('Font','8-7','XS','XS Font (Basic size 17x17 dots)',52),
         new Command('Font','8-8','XM','XM Font (Basic size 24x24 dots)',54),
         new Command('Font','8-9','XB','XB Font (Basic size 48x48 dots)',56),
+        new Command('Font','','XB1','',0),
         new Command('Font','8-10','XL','XL Font (Basic size 48x48 dots)',58),
         new Command('Font','8-11','OA','OCR-A Font',60),
         new Command('Font','8-12','OB','OCR-B Font',62),
