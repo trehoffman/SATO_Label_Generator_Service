@@ -31,6 +31,13 @@ function SatoPrinter() {
             narrowBar: '',
             wideBar: ''
         };
+
+        me.outlineFont = {
+            type: 'A',
+            width: 24,
+            height: 24,
+            design: 0
+        };
     };
     me.initializeReferences();
 
@@ -188,6 +195,37 @@ function SatoPrinter() {
                 };
             case 'Font':
                 switch (command.command) {
+                    case '$':
+                        var p = params.split(',');
+                        if (p.length < 4) {
+                            console.error('incorrect parameters');
+                            return '';
+                        }
+
+                        me.outlineFont.type = p[0]; //font type: A,B,K,L,k,l
+                        me.outlineFont.width = parseInt(p[1]); //font width: 24 to 999 dots
+                        me.outlineFont.height = parseInt(p[2]); //font height: 24 to 999 dots
+                        me.outlineFont.design = parseInt(p[3]); //font design
+
+                        return '';
+                    case '$=':
+                        console.log(params);
+                        var fontWeight = 'normal';
+                        if (me.outlineFont.type == 'B') {
+                            fontWeight = 'bold';
+                        }
+                        //TODO: factor in text espansion and darkess
+                        var x = me.currentPosition.baseReference[0] + me.currentPosition.horizontal;
+                        var y = me.currentPosition.baseReference[1] + me.currentPosition.vertical;
+                        var css = 'font-family: \'Helvetica\', sans-serif;'
+                            + 'font-weight:' + fontWeight + ';'
+                            + 'white-space:nowrap;overflow:visible;'
+                            + 'position:absolute;left:' + x + 'px;top:' + y + 'px;'
+                            + 'font-size:' + me.outlineFont.height.toString() + 'px;'
+                            + 'transform:rotate(' + me.currentPosition.rotation  + 'deg);';
+                        return '<div style="' + css + '">' 
+                            + params 
+                            + '</div>';
                     default:
                         //TODO: factor in text espansion and darkess
                         var font = me.fonts.get(command.command);
