@@ -1,7 +1,7 @@
 function SatoPrinter() {
     var me = this;
 
-    this.code_type = 'non-standard';
+    this.code_type = 'non-standard'; //standard or non-standard
     this.JobIdNumber = 0;
     this.JobName = '';
     this.dotsPerMm = 8; //for 203 dpi print heads, 12 for 305, 24 for 609
@@ -9,7 +9,7 @@ function SatoPrinter() {
         width: 4,
         height: 4
     };
-    this.illegal_characters = [ '{', '}', '^', '~', '@', '!', ']'];
+    this.illegal_characters = [ '{', '}', '^', '~', '@', '!', ']']; //also "<" and ">"?
     this.commands = new Commands();
     this.fonts = new Fonts();
 
@@ -40,6 +40,16 @@ function SatoPrinter() {
         };
     };
     me.initializeReferences();
+
+    this.setCodeType = function(code_type) {
+        switch (code_type.toLowerCase()) {
+            case 'standard':
+                me.code_type = 'standard';
+                break;
+            default:
+                me.code_type = 'non-standard';
+        }
+    };
 
     this.executeCommand = function(command, code) {
         var segments = code.split(command.command);
@@ -345,7 +355,7 @@ function SatoPrinter() {
     this.html = function(code) {
         var html = '';
         me.initializeReferences();
-        var segments = code.split('^');
+        var segments = me.getSegments(code);
         for (var i = 0; i < segments.length; i++) {
             var segment = segments[i];
             if (segment.length == 0) {
@@ -362,12 +372,29 @@ function SatoPrinter() {
         }
         return html;
     };
+
+    this.getSegments = function(code) {
+        code = (code || '').trim();
+        if (code.length === 0) {
+            return [];
+        }
+
+        if (me.code_type === 'standard') {
+            //quick and dirty for now...replace all instances of '<' with '^' and remove all instances of '>'
+            return code.replace(/</g, '^').replace(/>/g, '').split('^');
+        }
+
+        if (me.code_type === 'non-standard') {
+            return code.split('^');
+        }
+    };
 }
 
 function SatoLabel() {
     var me = this;
     
     this.code = '';
+    this.code_type = 'non-standard';
     this.commands = {
         command: '^',
         startData: '{',
@@ -376,8 +403,33 @@ function SatoLabel() {
         outlineFontPrint: '$='
     };
 
+    this.setCodeType = function(code_type) {
+        switch (code_type.toLowerCase()) {
+            case 'standard':
+                me.code_type = 'standard';
+                break;
+            default:
+                me.code_type = 'non-standard';
+        }
+    };
+
     this.addCode = function(code) {
         me.code += code;
+    };
+
+    this.addCommand = function(command, parameters) {
+        command = command || '';
+        parameters = parameters || '';
+
+        if (command.length === 0) return;
+
+        if (me.code_type === 'standard') {
+            me.addCode('<' + command + '>' + parameters);
+        }
+
+        if ( me.code_type === 'non-standard') {
+            me.addCode(me.commands.command + command + parameters);
+        }
     };
 
     this.text = function() {
@@ -389,40 +441,33 @@ function SatoLabel() {
     };
 
     this.startLabel = function() {
-        me.addCode(me.commands.command 
-            + 'A'); 
+        me.addCommand('A');
     };
 
     this.endLabel = function() {
-        me.addCode(me.commands.command
-            + 'Z');
+        me.addCommand('Z');
     };
 
     this.setLabelQuantity = function(quantity) {
-        me.addCode(me.commands.command
-            + 'Q' + quantity.toString());
+        me.addCommand('Q', quantity.toString());
     };
 
     this.setRotation = function(value) {
-        me.addCode(me.commands.command
-            + '%' + value.toString());
+        me.addCommand('%', value.toString());
     };
 
     this.setBaseReference = function(x, y) {
-        me.addCode(me.commands.command
-            + 'A3' 
-            + 'H' + x.toString() 
-            + 'V' + y.toString());
+        me.addCommand('A3');
+        me.addCommand('H', x.toString());
+        me.addCommand('V', y.toString());
     };
 
     this.setHorizontal = function(x) {
-        me.addCode(me.commands.command
-            + 'H' + x.toString());
+        me.addCommand('H', x.toString());
     };
 
     this.setVertical = function(y) {
-        me.addCode(me.commands.command
-            + 'V' + y.toString());
+        me.addCommand('V', y.toString());
     };
 
     this.setPosition = function(x, y) {
@@ -431,42 +476,32 @@ function SatoLabel() {
     };
 
     this.setFont = function(font) {
-        me.addCode(me.commands.command
-            + font);
+        me.addCommand(font);
     };
 
     this.setDarkness = function(value) {
-        me.addCode(me.commands.command
-            + 'E' + value);
+        me.addCommand('E', value);
     };
 
     this.ExpandFont = function(x, y) {
-        me.addCode(me.commands.command
-            + 'L' + x + y);
+        me.addCommand('L', x + y);
     };
 
     this.ReverseImage = function(left, top, right, bottom) {
-        me.addCode(me.commands.command
-            + '(' + right.toString()
-            + ',' + bottom.toString());
+        me.addCommand('(', right.toString() + ',' + bottom.toString());
     };
 
     this.sequenceNumbering = function(repeatCount, stepSize) {
-        me.addCode(me.commands.command
-            + 'F' + repeatCount + stepSize);
+        me.addCommand('F', repeatCount + stepSize);
     };
 
     this.setBarcodeRatio = function(sCode, sSymbol, narrowSpaceInDots, wideSpanceInDots, narrowBarInDots, wideBarInDots) { //AKA Barcode2
         //formatting needed
-        me.addCode(me.commands.command
-            + sCode + sSymbol
-            + narrowSpaceInDots + wideSpanceInDots
-            + narrowBarInDots + wideBarInDots);
+        me.addCommand(sCode, sSymbol + narrowSpaceInDots + wideSpanceInDots + narrowBarInDots + wideBarInDots);
     };
 
     this.barcode3 = function(sCode, expFactor, heightInDots) {
-        me.addCode(me.commands.command
-            + sCode + expFactor + heightInDots);
+        me.addCommand(sCode, expFactor + heightInDots);
     };
 
     this.addCarriageReturn = function() {
@@ -481,25 +516,24 @@ function SatoLabel() {
 
     this.addBarcode = function(x, y, data) {
         me.setPosition(x, y);
-        me.addCode(me.commands.command + 'F0001+0001' 
-            + me.commands.command + 'BT101020103'
-            + me.commands.command + 'BW03100*' 
-            + data + '*');
+        me.addCommand('F', '0001+0001');
+        me.addCommand('BT', '101020103');
+        me.addCommand('BW', '03100*' + data + '*')
     };
 
     this.addVerticalBarcode = function(x, y, data) {
         me.setPosition(x, y);
-        me.addCode(me.commands.command + 'F0001+0001'
-            + me.commands.command + 'BT101020103'
-            + me.commands.command + 'BW03050*' + data + '*');
+        me.addCommand('F', '0001+0001');
+        me.addCommand('BT', '101020103');
+        me.addCommand('BW', '03050*' + data + '*');
         me.setRotation(0);
     };
 
     this.addVectorText = function(x, y, text) {
         me.setPosition(x, y);
-        me.addCode(me.commands.command + '$B,320,200,0'
-            + me.commands.command + '$=' + text
-            + me.commands.command + 'L0101'); 
+        me.addCommand('$', 'B,320,200,0')
+        me.addCommand('$=' + text);
+        me.addCommand('L', '0101');
     };
 
     this.helloWorld= function() {

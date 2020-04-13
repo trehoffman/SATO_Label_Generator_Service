@@ -8,8 +8,20 @@ function SatoLabelPrinterEmulator() {
     };
 
     me.addEventListeners = function() {
+        document.addEventListener('change', me.onChangeHandler);
         document.addEventListener('click', me.onClickHandler);
         document.addEventListener('keyup', me.onKeyUpHandler);
+    };
+
+    me.onChangeHandler = async function(e) {
+        if (e.target.name === 'mode') {
+            let mode = e.target.value;
+            me.satoPrinter.setCodeType(mode);
+            me.satoLabel.setCodeType(mode);
+        }
+
+        await timeout(250);
+        me.refreshLabels();
     };
     
     me.onClickHandler = async function(e) {

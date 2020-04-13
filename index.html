@@ -11,10 +11,16 @@
             <h1>SATO Label Printer Emulator</h1>
         </div>
         <div class="w3-container w3-margin toolbar">
-            <button type="button" class="helloworld w3-button">Hello World</button>
-            <button type="button" class="initialize w3-button">Clear</button>
-            <button type="button" class="startlabel w3-button">Start Label</button>
-            <button type="button" class="endlabel w3-button">End Label</button>
+            <div class="w3-margin">
+                <input type="radio" name="mode" value="non-standard" class="w3-radio" checked /> Non-Standard
+                <input type="radio" name="mode" value="standard" class="w3-radio" /> Standard
+            </div>
+            <div>
+                <button type="button" class="helloworld w3-button">Hello World</button>
+                <button type="button" class="initialize w3-button">Clear</button>
+                <button type="button" class="startlabel w3-button">Start Label</button>
+                <button type="button" class="endlabel w3-button">End Label</button>
+            </div>
         </div>
         <div class="w3-container w3-margin">
             <textarea class="display w3-input"></textarea>
