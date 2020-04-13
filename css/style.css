@@ -1,0 +1,19 @@
+﻿body
+{
+    min-height: 350px;
+    height: 100vh;
+    background: #ffffff url(/img/sato-logo.png) no-repeat center center;
+}
+
+.background_cover {
+    background: rgba(255,255,255,.75);
+    height: 100%;
+}
+
+#label_printer_path {
+    width: 300px;
+}
+
+.progress_log {
+    margin: 25px;
+}
