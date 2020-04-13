@@ -76,10 +76,6 @@ function SatoLabelPrinterEmulator() {
         }
     };
 
-    me.evaluateScripts = function() {
-        
-    }
-
     function timeout(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
