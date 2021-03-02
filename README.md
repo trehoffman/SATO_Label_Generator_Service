@@ -1,6 +1,8 @@
 ﻿SATO_Label_Generator_Service
 ==============
 
+HELP IS HERE! You can hire me to help you with your SATO Label issues.  Contact me: trehoffman@gmail.com
+
 NEW: SATO Label Printer Emulator https://trehoffman.github.io/SATO_Label_Generator_Service/
 
 C# .NET classes and Javascript/JQuery/AJAX working together to generate Non-Standard labels for SATO Label Printers.
